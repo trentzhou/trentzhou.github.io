@@ -1,4 +1,4 @@
 # Trent's github pages
 
-[My Blog](/blog)
+[My Blog](https://trentzhou.github.io/blog)
 
