@@ -1,2 +1,4 @@
-# trentzhou.github.io
-Personal website
+# Trent's github pages
+
+[My Blog](/blog)
+
