@@ -53,7 +53,7 @@
         }
 
         function on_guess() {
-            var text = this.innerText;
+            var text = this.innerText.trim();
             if (text == answer.toString()) {
                 // correct
                 $("#puzzle").html('<span class="glyphicon glyphicon-ok"></span>')
