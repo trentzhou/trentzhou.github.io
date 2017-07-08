@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>加法</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://cdn.bootcss.com/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="jumbotron" align="center">
+            <h1 id="puzzle">3+4=?</h1>
+        </div>
+        <table class="table">
+            <tr>
+                <td><button class="btn btn-danger btn-block"><h1 id="answer1"><span class="glyphicon glyphicon-remove"></span></h1></button></td>
+                <td><button class="btn btn-success btn-block"><h1 id="answer2">5</h1></button></td>
+                <td><button class="btn btn-primary btn-block"><h1 id="answer3"><span class="glyphicon glyphicon-ok"></h1></button></td>
+            </tr>
+        </table>
+    </div>
+    <script language="javascript">
+        var answer = 0;
+        var a = 0;
+        var b = 0;
+        var numbers = null;
+
+        function show_puzzle() {
+            $("#puzzle").html("" + a + "+" + b + "=?");
+            $("#answer1").html(numbers[0]);
+            $("#answer2").html(numbers[1]);
+            $("#answer3").html(numbers[2]);
+        }
+
+        function start_puzzle() {
+            a = Math.floor(Math.random()*11);
+            b = Math.floor(Math.random()*11)
+            answer = a + b;
+
+            // the 3 answers
+            var candidates = {}
+            candidates[answer] = 1;
+            while (Object.keys(candidates).length < 3) {
+                var number = Math.floor(Math.random() * 21);
+                candidates[number] = 1;
+            }
+            numbers = Object.keys(candidates);
+            show_puzzle();
+        }
+
+        function on_guess() {
+            var text = this.innerText;
+            if (text == answer.toString()) {
+                // correct
+                $("#puzzle").html('<span class="glyphicon glyphicon-ok"></span>')
+                setTimeout(start_puzzle, 2000);
+            } else {
+                $("#puzzle").html('<span class="glyphicon glyphicon-remove"></span>');
+                setTimeout(show_puzzle, 2000);
+            }
+        }
+
+        $(document).ready(function() {
+            start_puzzle();
+
+            $("#puzzle").click(start_puzzle);
+            $(".btn").click(on_guess);
+        });
+    </script>
+</body>
+
+</html>
