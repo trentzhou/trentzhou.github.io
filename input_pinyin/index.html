@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>输入拼音</title>
+        <style>
+            textarea {
+                font-size: 2em;
+            }
+        </style>
+    </head>
+
+    <body>
+        <!--这是我们的View-->
+        <div id="app">
+            <h1>在这里输入拼音</h1>
+            <textarea v-model="message" cols="40" rows="10" ></textarea>
+            <textarea v-model="pinyin" cols="40" rows="10" readonly></textarea>
+        </div>
+
+    </body>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script>
+        // 这是我们的Model
+        var exampleData = {
+            message: 'chuang2 qian2 ming2 yue4 guang1,\nyi2 shi4 di4 shang4 shuang1.\nju3 tou2 wang4 ming2 yue4,\ndi1 tou2 si1 gu4 xiang1.'
+        }
+
+        // 创建一个 Vue 实例或 "ViewModel"
+        // 它连接 View 与 Model
+        new Vue({
+            el: '#app',
+            data: exampleData,
+            computed: {
+                pinyin: function() {
+                    return getPinyin(this.message);
+                }
+            }
+        });
+
+        function getPinyin(input) {
+            var variants = {
+                'a': ['a', 'ā', 'á', 'ǎ', 'à'],
+                'o': ['o', 'ō', 'ó', 'ǒ', 'ò'],
+                'e': ['e', 'ē', 'é', 'ě', 'è'],
+                'i': ['i', 'ī', 'í', 'ǐ', 'ì'],
+                'u': ['u', 'ū', 'ú', 'ǔ', 'ù'],
+                'ü': ['ü', 'ǖ', 'ǘ', 'ǚ', 'ǜ'],
+                'v': ['ü', 'ǖ', 'ǘ', 'ǚ', 'ǜ']
+            };
+            function tone_radix(c) {
+                var lookup_table = {
+                    'a': 1,
+                    'o': 2,
+                    'e': 3,
+                    'i': 10,
+                    'u': 10,
+                    'v': 10,
+                };
+                if (lookup_table.hasOwnProperty(c))
+                    return lookup_table[c];
+                return 100;
+            }
+        
+            var result = [];
+            for (var i = 0; i < input.length; i++) {
+                var c = input[i];
+                if (c >= '1' && c <= '4') {
+                    var index = c - '0'
+                    // find position to translate
+                    var min_pos = 0;
+                    var min_radix = 100;
+                    // search the latest word
+                    for (var j = result.length - 1; j >= 0; j--) {
+                        c = result[j];
+                        if (c < 'a' || c > 'z')
+                            break;
+                        var radix = tone_radix(c)
+                        if (radix <= min_radix) {
+                            min_pos = j;
+                            min_radix = radix;
+                        }
+                    }
+                    c = result[min_pos];
+                    if (variants.hasOwnProperty(c)) {
+                        result[min_pos] = variants[c][index];
+                    }
+                } else {
+                    result.push(c)
+                }
+            }
+            
+            return result.join('')
+        }
+    </script>
+</html>
