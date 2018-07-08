@@ -76,7 +76,7 @@
                         if (c < 'a' || c > 'z')
                             break;
                         var radix = tone_radix(c)
-                        if (radix <= min_radix) {
+                        if (radix < min_radix) {
                             min_pos = j;
                             min_radix = radix;
                         }
