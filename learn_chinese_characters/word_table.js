@@ -4,7 +4,7 @@ var unit1 = [
 ];
 
 var unit2 = [
-    "书 shu1", "写 xie3", "笔 bi3", "本 ben3", "笨 ben4", "读 du2", "知 zhi1", "识",
+    "书 shu1", "写 xie3", "笔 bi3", "本 ben3", "笨 ben4", "读 du2", "知 zhi1", "识 shi2",
     "老 lao3", "师 shi1", "课 ke4", "作 zuo4", "业 ye4", "打 da3", "开 kai1", "关 guan1",
     "主 zhu3"
 ];
