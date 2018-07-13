@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>输入拼音</title>
+        <style>
+            .pinyin {
+                text-align: center;
+                width: 100%;
+                font-size: 8em;
+                font-family: "'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif";
+                font-style: italic;
+                color: #666;
+            }
+            .char {
+                text-align: center;
+                width: 100%;
+                font-size: 10em;
+                font-family: "KaiTi, STKaiti, BiauKai, , 'Hei', WenQuanYi Zen Hei'";
+                color: #333;
+            }
+            .invisible {
+                visibility: hidden;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="app">
+            <select id="select_unit"></select>
+            <div class="pinyin" id="pinyin"></div>
+            <div class="char" id="char"></div>
+        </div>
+
+    </body>
+
+    <script
+        src="https://code.jquery.com/jquery-3.3.1.js"
+        integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+        crossorigin="anonymous">
+    </script>
+    <script src="word_table.js"></script>
+    <script>
+        $(function() {
+            var keys = Object.keys(all_units).sort()
+            var active_unit = null;
+
+            for (var i = 0; i < keys.length; i++) {
+                var text = keys[i];
+                $("#select_unit").append($("<option>").html(text));
+            }
+            select_unit("unit1");
+
+            function select_unit(unit_name) {
+                active_unit = all_units[unit_name];
+                show_character();
+            }
+
+            $("#select_unit").on('change', function() {
+                select_unit($("#select_unit").val());
+            });
+
+            function show_character() {
+                var index = Math.floor(Math.random() * active_unit.length);
+                var text = active_unit[index];
+                var fields = text.split(' ');
+                var chinese = fields[0];
+                var pinyin = fields[1];
+                $("#char").text(chinese);
+                $("#pinyin").text(getPinyin(pinyin));
+                $("#pinyin").addClass("invisible");
+            }
+
+            function next_screen() {
+                if ($("#pinyin").hasClass("invisible")) {
+                    $("#pinyin").removeClass("invisible");
+                } else {
+                    show_character();
+                }
+            }
+            $("body").on("keydown", function(event) {
+                if (event.key == "Enter" || event.key == " ") {
+                    next_screen();
+                }
+            }).on('click', next_screen);
+        });
+        function getPinyin(input) {
+            var variants = {
+                'a': ['a', 'ā', 'á', 'ǎ', 'à'],
+                'o': ['o', 'ō', 'ó', 'ǒ', 'ò'],
+                'e': ['e', 'ē', 'é', 'ě', 'è'],
+                'i': ['i', 'ī', 'í', 'ǐ', 'ì'],
+                'u': ['u', 'ū', 'ú', 'ǔ', 'ù'],
+                'ü': ['ü', 'ǖ', 'ǘ', 'ǚ', 'ǜ'],
+                'v': ['ü', 'ǖ', 'ǘ', 'ǚ', 'ǜ']
+            };
+            function tone_radix(c) {
+                var lookup_table = {
+                    'a': 1,
+                    'o': 2,
+                    'e': 3,
+                    'i': 10,
+                    'u': 10,
+                    'v': 10,
+                };
+                if (lookup_table.hasOwnProperty(c))
+                    return lookup_table[c];
+                return 100;
+            }
+        
+            var result = [];
+            for (var i = 0; i < input.length; i++) {
+                var c = input[i];
+                if (c >= '1' && c <= '4') {
+                    var index = c - '0'
+                    // find position to translate
+                    var min_pos = 0;
+                    var min_radix = 100;
+                    // search the latest word
+                    for (var j = result.length - 1; j >= 0; j--) {
+                        c = result[j];
+                        if (c < 'a' || c > 'z')
+                            break;
+                        var radix = tone_radix(c)
+                        if (radix < min_radix) {
+                            min_pos = j;
+                            min_radix = radix;
+                        }
+                    }
+                    c = result[min_pos];
+                    if (variants.hasOwnProperty(c)) {
+                        result[min_pos] = variants[c][index];
+                    }
+                } else {
+                    result.push(c)
+                }
+            }
+            
+            return result.join('')
+        }
+    </script>
+</html>
