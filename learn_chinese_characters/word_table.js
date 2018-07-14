@@ -22,7 +22,7 @@ var unit4 = [
 
 var unit5 = [
     "车 che1", "竹 zhu2", "木 mu4", "米 mi3", "黑 hei1", "白 bai2", "红 hong2", "绿 lv4",
-    "蓝 lan2", "分 fen1", "粉 fen3", "色 se4", "吃 chi1", "穿 chuan1", "用 yong4", "拿 na2"
+    "蓝 lan2", "分 fen1", "粉 fen3", "色 se4", "吃 chi1", "穿 chuan1", "用 yong4", "拿 na2",
 ];
 
  var unit6 = [
@@ -34,16 +34,16 @@ var unit5 = [
  var unit7 = [
      "尺 chi3", "寸 cun4", "元 yuan2", "方 fang1", "乱 luan4", "每 mei3", "同 tong2", "长 chang2",
      "短 duan3", "常 chang2", "琴 qin2", "弹 tan2", "你 ni3", "我 wo3", "他 ta1", "她 ta1", "它 ta1",
-     "也 ye3", "很 hen3"
+     "也 ye3", "很 hen3", "单 dan1", "双 shuang1"
  ];
 
  var all_units = {
-     "unit1": unit1,
-     "unit2": unit2,
-     "unit3": unit3,
-     "unit4": unit4,
-     "unit5": unit5,
-     "unit6": unit6,
-     "unit7": unit7
+     "单元 1": unit1,
+     "单元 2": unit2,
+     "单元 3": unit3,
+     "单元 4": unit4,
+     "单元 5": unit5,
+     "单元 6": unit6,
+     "单元 7": unit7
  }
  
