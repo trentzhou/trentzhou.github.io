@@ -49,7 +49,7 @@
                 var text = keys[i];
                 $("#select_unit").append($("<option>").html(text));
             }
-            select_unit("unit1");
+            select_unit(keys[0]);
 
             function select_unit(unit_name) {
                 active_unit = all_units[unit_name];
