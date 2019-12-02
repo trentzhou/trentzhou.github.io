@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>新建录音</title>
+
+
+    <!-- Custom styles for this template -->
+    <link href="vmsg/vmsg.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<!-- Main Content -->
+<div class="container">
+    <div>
+        <label>标题</label>
+        <input id="title" value="随笔"/>
+    </div>
+    <div>
+        <button id="recordButton">录音</button>
+        <button id="upload">上传</button>
+        <button id="deleteAudio">清除</button>
+    </div>
+    <div id="recordedAudio"></div>
+</div>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="http://jssdk-v2.demo.qiniu.io/dist/qiniu.min.js"></script>
+
+<script src="vmsg/app.js" type="module"></script>
+
+<script>
+    jQuery(document).ready(function($) {
+        var audioBlob = null;
+		function dateToText(d) {
+			let year = d.getFullYear();
+			let month = (d.getMonth() + 1).toString().padStart(2, '0');
+			let date = d.getDate().toString().padStart(2, '0');
+			let hour = d.getHours().toString().padStart(2, '0');
+			let minute = d.getMinutes().toString().padStart(2, '0');
+			let second = d.getSeconds().toString().padStart(2, '0');
+
+			return year + "-" + month + "-" + date + "-" + hour + "-" + minute + "-" + second;
+		}
+
+        $("#upload").click(function() {
+            var filename = dateToText(new Date()) + ".mp3";
+            var url = `https://1109587936823093.cn-shanghai.fc.aliyuncs.com/2016-08-15/proxy/audiolog/helper/${filename}`;
+            var param = {
+                "title": $("#title").val()
+            }
+            var paramString = $.param(param);
+            url = url + "?" + paramString;
+
+            $.getJSON(url, function(data) {
+                var token = data.token;
+                // we are ready to upload
+                var o = qiniu.upload(audioBlob, filename, token, {}, {});
+                o.subscribe({
+                    next: function(response) {
+                        console.log("Next:", response);
+                        $("#recordedAudio").append($(`<p>Uploaded ${response.total.percent} %</p>`));
+                    },
+                    error: function(response) {
+                        console.log("Error:", response)
+                    },
+                    complete: function(response) {
+                        console.log("Complete:", response)
+                        $("#recordedAudio").append($(`<p>Upload complete</p>`));
+                    }
+                })
+            });
+        });
+
+        $("#recordButton").click(function() {
+            showRecord("vmsg/vmsg.wasm").then(blob => {
+                audioBlob = blob;
+                console.log("Recorded MP3", blob);
+                var url = URL.createObjectURL(blob);
+                console.log(`Generated URL is ${url}`);
+                $("#recordedAudio").html(`<audio controls="true" src="${url}" style="width:100%"></audio>`);
+                var reader = new FileReader();
+                reader.onload = function(event) {
+                    var audioData = $('<input type="hidden" id="audioData" name="audioData">');
+                    audioData.val( event.target.result );
+                    $("#recordedAudio").append(audioData);
+                };
+
+                reader.readAsDataURL(blob);
+                $('input[type=file]').value = blob;
+            });
+        });
+        $("#deleteAudio").click(function() {
+            audioBlob = null;
+            $("#recordedAudio").html('<input type="file" accept="*.mp3" name="filename">');
+        })
+    });
+</script>
+</body>
+
+</html>

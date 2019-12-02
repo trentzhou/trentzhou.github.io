@@ -1,0 +1,77 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <title>Audiolog</title>
+        <style>
+            html,
+            body {
+                margin: auto;
+                width: 90%;
+                padding: 10px;
+                font-size: 16px;
+            }
+            audio {
+                width: 100%;
+            }
+            .header {
+                text-align: center;
+                font-size: large;
+            }
+            .voice-record {
+                margin-top: 10px;
+            }
+            .voice-record-title {
+                color:darkslateblue;
+                font-size: larger;
+            }
+            .voice-record-time {
+                float: right;
+                color: darkgray;
+            }
+            .footer {
+                border-top-style: dotted;
+                margin-top: 2ch;
+                padding-top: 1ch;
+                color:darkgray;
+            }
+        </style>
+        <script src="jquery-3.3.1.min.js"></script>
+    </head>
+
+    <body>
+        <div class="header">
+            <h1 id="title"></h1>
+        </div>
+        <div class="main" id="items">
+        </div>
+        <div class="footer">
+            到此为止啦。
+        </div>
+        <script>
+            $(function() {
+                $.ajaxSetup({cache: false});
+                $.getJSON("http://audiolog.zhouyequan.com/inventory.json", function(data) {
+                    let title = data["title"]
+                    let items = data["items"]
+                    $("#title").text(title)
+                    document.title = title
+                    for (let i = 0; i < items.length; i++) {
+                        let item = items[i]
+                        let div = $("<div>").attr("class", "voice-record").
+                            append($("<div>").attr("class", "voice-record-title").
+                                     append(item.title).
+                                     append($("<span>").attr("class", "voice-record-time").
+                                         text(item["time"]))).
+                            append($("<audio>").attr("src", "http://audiolog.zhouyequan.com/" + item["audiofile"]).
+                                              attr("controls", "true").
+                                              attr("preload", "none"))
+                        $("#items").append(div)
+                    }
+                });
+            });
+        </script>
+    </body>
+</html>
+

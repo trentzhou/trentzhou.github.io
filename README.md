@@ -6,5 +6,5 @@
 * [输入拼音](input_pinyin)
 * [时间都去哪儿了](time-tracker)
 * [相对音感训练 ](tune-trainer)
-* [声音日记](http://audiolog.zhouyequan.com)
+* [声音日记](audiolog)
 
