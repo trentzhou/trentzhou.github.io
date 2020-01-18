@@ -7,4 +7,5 @@
 * [时间都去哪儿了](time-tracker)
 * [相对音感训练 ](tune-trainer)
 * [声音日记](audiolog)
+* [二年级寒假口算生成器](math_practice)
 

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <style>
+        html,
+        body {
+            margin: auto;
+            width: 90%;
+            padding: 10px;
+            font-size: 25px;
+            text-align: center;
+        }
+
+        button {
+            font-size: 40px;
+        }
+
+        .controller {
+            margin-top: 1em;
+        }
+        .selected {
+            border-style: solid;
+            border-color: crimson;
+        }
+
+        .result {
+            font-size: 64px;
+            color:darkslategray;
+            margin-top: 2em;
+        }
+
+    </style>
+    <title>口算生成器</title>
+</head>
+
+<body>
+    <div class="controller">
+        <button id="btn-add" class="btn selected">加</button>
+        <button id="btn-subtract" class="btn">减</button>
+        <button id="btn-multiply" class="btn">乘</button>
+        <button id="btn-divide" class="btn">除</button>
+    </div>
+
+    <div id="result" class="result">
+    </div>
+
+    <script>
+        var buttons = document.getElementsByClassName("btn");
+        function init() {
+            for (var btn of buttons) {
+                btn.onclick = function(e) {
+                    var o = e.target;
+                    for (var b of buttons) {
+                        if (b != o) {
+                            if (b.classList.contains("selected"))
+                                b.classList.remove("selected");
+                        } else {
+                            if (!b.classList.contains("selected"))
+                                b.classList.add("selected")
+                        }
+                    }
+                    createMath();
+                }
+            }
+            // create a new math on every tap
+            document.onclick = createMath;
+        }
+
+        function genAdd() {
+            while (1) {
+                var a = parseInt(Math.random() * 10);
+                var b = parseInt(Math.random() * 10);
+                if (a + b > 10) {
+                    return `${a} + ${b}`
+                }
+            }
+        }
+
+        function genSubtract() {
+            while (1) {
+                var a = parseInt(Math.random() * 10);
+                var b = parseInt(Math.random() * 10);
+                if (a + b > 10) {
+                    return `${a + b} - ${a}`
+                }
+            }
+        }
+
+        function genMultiply() {
+            var a = parseInt(Math.random() * 10) + 1;
+            var b = parseInt(Math.random() * 10) + 1;
+            return `${a} x ${b}`
+        }
+
+        function genDivide() {
+            var a = parseInt(Math.random() * 10) + 1;
+            var b = parseInt(Math.random() * 10) + 1;
+            return `${a*b} \u00f7 ${a}`
+        }
+
+        function createMath() {
+            var activeBtn = document.getElementsByClassName("selected");
+            var btnId = activeBtn.item(0).id;
+            var result = "";
+            if (btnId == "btn-add") {
+                result = genAdd();
+            } else if (btnId == "btn-subtract") {
+                result = genSubtract();
+            } else if (btnId == "btn-multiply") {
+                result = genMultiply();
+            } else if (btnId == "btn-divide") {
+                result = genDivide();
+            }
+            document.getElementById("result").innerText = result;
+        }
+
+        init();
+        createMath();
+    </script>
+</body>
