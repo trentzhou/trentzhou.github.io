@@ -13,6 +13,23 @@
     <!-- Custom styles for this template -->
     <link href="vmsg/vmsg.css" rel="stylesheet">
 
+    <style>
+        html,
+        body {
+            margin: auto;
+            width: 90%;
+            padding: 10px;
+            font-size: 16px;
+        }
+        audio {
+            width: 100%;
+        }
+        
+        .button-bar button {
+            margin: 2em;
+        }
+    </style>
+
 </head>
 
 <body>
@@ -21,9 +38,9 @@
 <div class="container">
     <div>
         <label>标题</label>
-        <input id="title" value="随笔"/>
+        <input id="title" value="闲话："/>
     </div>
-    <div>
+    <div class="button-bar">
         <button id="recordButton">录音</button>
         <button id="upload">上传</button>
         <button id="deleteAudio">清除</button>
