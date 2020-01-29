@@ -63,6 +63,20 @@
             return year + "-" + month + "-" + date + " " + hour + ":" + minute + ":" + second
         }
 
+        function formatSeconds(s) {
+            result = ""
+            if (s >= 3600) {
+                result += "" + parseInt(s / 3600) + "小时"
+                result = s % 3600
+            }
+            if (s >= 60) {
+                result += "" + parseInt(s / 60) + "分"
+                s = s % 60
+            }
+            result += "" + s + "秒"
+            return result
+        }
+
         class ActionItem {
             constructor(action) {
                 if (typeof(action) == "string") {
@@ -301,7 +315,7 @@
                         }
                     })
                     length_map[action] = parseInt(length/1000)
-                    summaryText += action + "了" + length_map[action] + "秒; "
+                    summaryText += action + "了" + formatSeconds(length_map[action]) + " "
                 })
                 let summary = document.createElement("p")
                 summary.innerText = summaryText
@@ -312,7 +326,7 @@
                 record.items.map((item) => {
                     let li = document.createElement("li")
                     li.setAttribute("class", item.action)
-                    li.innerText = item.action + " " + parseInt((item.finish_time - item.start_time)/1000) + "秒"
+                    li.innerText = item.action + " " + formatSeconds(parseInt((item.finish_time - item.start_time)/1000))
                     ul.appendChild(li)
                 })
                 div.appendChild(ul)
