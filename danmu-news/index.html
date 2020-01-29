@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <title>弹幕新闻</title>
+  <style>
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+    }
+
+    #wrapper {
+      min-height: 100%;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+      background-color: black;
+      text-shadow: 1px 1p gray;
+    }
+
+    a {
+      color: #ffffff;
+      text-decoration: none;
+    }
+
+    .right {
+      position: absolute;
+      visibility: hidden;
+      white-space: nowrap;
+      /* transform: translateX(2000px); */
+    }
+
+    .left {
+      position: absolute;
+      white-space: nowrap;
+      user-select: none;
+      transition: transform 30s linear;
+      /* 时间相同 越长的弹幕滑动距离越长 所以越快~ */
+    }
+  </style>
+</head>
+
+<body>
+  <div id="wrapper"></div>
+  <script src="jquery-3.3.1.min.js"></script>
+
+  <script>
+
+
+    $(function () {
+      /**
+     * 设置 弹幕DOM池 每一个通道最多六条弹幕
+    **/
+
+      const MAX_DM_COUNT = 6;
+      const CHANNEL_COUNT = 10;
+
+      let domPool = [];
+      let danmuPool = [];
+      let hasPosition = [];
+      let windowWidth = $(window).width();
+      let windowHeight = $(window).height();
+
+      console.log("Window width=", windowWidth);
+
+      /**
+       * 做一下初始化工作
+       */
+      function init() {
+
+        $.ajaxSetup({ cache: false });
+        
+        function fetchNews() {
+          console.log("正在抓取新闻");
+          $.getJSON("https://1109587936823093.cn-shanghai.fc.aliyuncs.com/2016-08-15/proxy/danmu/news/", function (data) {
+            danmuPool = data;
+          }).fail(function () {
+            console.log("Failed to get danmu list");
+            setTimeout(fetchNews, 3000);  // 抓取失败，过3秒钟再试一次
+          })
+        };
+
+        fetchNews();
+        setInterval(fetchNews, 300 * 1000); // 5分钟抓一次新闻
+
+        let wrapper = document.getElementById('wrapper');
+        wrapper.style.fontSize = `${parseInt(windowHeight / 10 / 1.8)}px`;
+        // 先new一些span 重复利用这些DOM
+        for (let j = 0; j < CHANNEL_COUNT; j++) {
+          let doms = [];
+          for (let i = 0; i < MAX_DM_COUNT; i++) {
+            // 要全部放进wrapper
+            let dom = document.createElement('span');
+            wrapper.appendChild(dom);
+            // 初始化dom的位置 通过设置className
+            dom.className = 'right';
+            dom.style.transform = `translateX(${windowWidth + dom.clientWidth}px)`;
+            // DOM的通道是固定的 所以设置好top就不需要再改变了
+            dom.style.top = j * (windowHeight / CHANNEL_COUNT) + 'px';
+            // 放入改通道的DOM池
+            doms.push(dom);
+            // 每次到transition结束的时候 就是弹幕划出屏幕了 将DOM位置重置 再放回DOM池
+            dom.addEventListener('transitionend', () => {
+
+              dom.className = 'right';
+              dom.style.transform = `translateX(${windowWidth + dom.clientWidth}px)`;
+
+              domPool[j].push(dom);
+            });
+          }
+          domPool.push(doms);
+        }
+        // hasPosition 标记每个通道目前是否有位置
+        for (let i = 0; i < CHANNEL_COUNT; i++) {
+          hasPosition[i] = true;
+        }
+      }
+
+      /**
+       * 获取一个可以发射弹幕的通道 没有则返回-1
+       */
+      function getChannel() {
+        for (let i = 0; i < CHANNEL_COUNT; i++) {
+          if (hasPosition[i] && domPool[i].length) return i;
+        }
+        return -1;
+      }
+
+      /**
+       * 根据DOM和弹幕信息 发射弹幕
+       */
+      function shootDanmu(dom, text, link, channel) {
+        //console.log('biu~ [' + text + ']');
+        dom.innerHTML = `<a href="${link}" target="_blank">${text}</a>`;
+        dom.style.transform = `translateX(${-dom.clientWidth - windowWidth}px)`;
+        dom.className = 'left';
+
+        hasPosition[channel] = false;
+        // 弹幕全部显示之后 才能开始下一条弹幕
+        // 大概 dom.clientWidth * 10 的时间 该条弹幕就从右边全部划出到可见区域 再加1秒保证弹幕之间距离
+        setTimeout(() => {
+          hasPosition[channel] = true;
+        }, dom.clientWidth * (30000/(dom.clientWidth + windowWidth)) + 1000);
+      }
+
+
+      init();
+
+      // 每隔1ms从弹幕池里获取弹幕（如果有的话）并发射
+      setInterval(() => {
+        let channel;
+        while (danmuPool.length && (channel = getChannel()) != -1) {
+          let dom = domPool[channel].shift();
+          if (danmuPool.length == 0)
+            return;
+
+          let item = danmuPool[Math.floor(Math.random() * danmuPool.length)];
+          shootDanmu(dom, item.title, item.link, channel);
+        }
+      }, 200);
+
+
+    })
+
+  </script>
+</body>
+
+</html>
