@@ -1,3 +1,6 @@
+var CHARS_ON_SCREEN = 1
+var CHAR_SPEED = 4
+
 // Use requestAnimationFrame to maintain smooth animation loops.
 // Fall back on setTimeout() if browser support isn't available.
 window.requestAnimFrame = (() => {
@@ -112,11 +115,11 @@ class TypePractice {
     }
 
     fillChars() {
-        while (this.runningChars.length < 10) {
+        while (this.runningChars.length < CHARS_ON_SCREEN) {
             let x = random(50, this.width-50)
             let y = random(this.height - 50, this.height)
             let hue = random(0, 255)
-            let speed = random(2, 8)
+            let speed = random(2, CHAR_SPEED)
             let c = random('A'.charCodeAt(0), 'Z'.charCodeAt(0) + 1)
             c = String.fromCharCode(c)
 
@@ -175,13 +178,37 @@ class TypePractice {
             this.particles.push(p)
         }
         boom()
-        runningChar.y = -10
+        runningChar.y = -40
     }
 
     handleKeyDown(key) {
+        let boom = false;
+        
+        if (key == 38) {
+            //up
+            CHAR_SPEED++;
+            boom = true
+        } else if (key == 40) {
+            // down
+            if (CHAR_SPEED > 2)
+                CHAR_SPEED--;
+            boom = true
+        } else if (key == 39) {
+            // right
+            CHARS_ON_SCREEN++;
+            boom = true
+        } else if (key == 37) {
+            // left
+            if (CHARS_ON_SCREEN > 1)
+                CHARS_ON_SCREEN--;
+            boom = true
+        } else if (key == 32) {
+            // space
+            boom = true
+        }
         for (const runningChar of this.runningChars) {
             // 空格键放大招
-            if (runningChar.charCode == key || key == 32) {
+            if (runningChar.y > 0 && (runningChar.charCode == key || boom)) {
                 this.fireAt(runningChar)
             }
         }
