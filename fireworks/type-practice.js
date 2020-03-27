@@ -120,8 +120,19 @@ class TypePractice {
             let y = random(this.height - 50, this.height)
             let hue = random(0, 255)
             let speed = random(2, CHAR_SPEED)
-            let c = random('A'.charCodeAt(0), 'Z'.charCodeAt(0) + 1)
-            c = String.fromCharCode(c)
+            let v = parseInt(random(0, 100))
+            let c = ""
+            if (v == 0)
+                c = "空格全炸"
+            else if (v == 1)
+                c = "上下调速"
+            else if (v == 2)
+                c = "左右调数"
+            else
+            {
+                c = random('A'.charCodeAt(0), 'Z'.charCodeAt(0) + 1)
+                c = String.fromCharCode(c)
+            }
 
             let runningChar = new RunningChar(c, hue, x, y, speed)
             this.runningChars.push(runningChar)

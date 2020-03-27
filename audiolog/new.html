@@ -19,15 +19,24 @@
             margin: auto;
             width: 90%;
             padding: 10px;
-            font-size: 16px;
+            font-size: 20px;
         }
+
         audio {
             width: 100%;
         }
-        
-        .button-bar button {
-            margin: 2em;
+
+        button, input {
+            font-size: 20px;
+            margin-right: 2em;
+            margin-bottom: 1em;
+            margin-top: 1em;
         }
+        
+        .button-bar {
+            font-size: 24px;
+        }
+
     </style>
 
 </head>
@@ -42,10 +51,15 @@
     </div>
     <div class="button-bar">
         <button id="recordButton">录音</button>
+        <input type="file" id="selectFile" accept=".mp3" />
+    </div>
+
+    <div id="recordedAudio"></div>
+
+    <div class="button-bar">
         <button id="upload">上传</button>
         <button id="deleteAudio">清除</button>
     </div>
-    <div id="recordedAudio"></div>
 </div>
 
 
@@ -67,6 +81,21 @@
 
 			return year + "-" + month + "-" + date + "-" + hour + "-" + minute + "-" + second;
 		}
+
+        function renderAudio(blob) {
+            audioBlob = blob;
+            console.log("Recorded MP3", blob);
+            var url = URL.createObjectURL(blob);
+            console.log(`Generated URL is ${url}`);
+            $("#recordedAudio").html(`<audio controls="true" src="${url}" style="width:100%"></audio>`);
+
+            reader.readAsDataURL(blob);
+        }
+
+        $("#selectFile").change(function(e) {
+            var file = e.target.files[0]
+            renderAudio(file)
+        })
 
         $("#upload").click(function() {
             var filename = dateToText(new Date()) + ".mp3";
@@ -98,26 +127,11 @@
         });
 
         $("#recordButton").click(function() {
-            showRecord("vmsg/vmsg.wasm").then(blob => {
-                audioBlob = blob;
-                console.log("Recorded MP3", blob);
-                var url = URL.createObjectURL(blob);
-                console.log(`Generated URL is ${url}`);
-                $("#recordedAudio").html(`<audio controls="true" src="${url}" style="width:100%"></audio>`);
-                var reader = new FileReader();
-                reader.onload = function(event) {
-                    var audioData = $('<input type="hidden" id="audioData" name="audioData">');
-                    audioData.val( event.target.result );
-                    $("#recordedAudio").append(audioData);
-                };
-
-                reader.readAsDataURL(blob);
-                $('input[type=file]').value = blob;
-            });
+            showRecord("vmsg/vmsg.wasm").then(renderAudio);
         });
         $("#deleteAudio").click(function() {
             audioBlob = null;
-            $("#recordedAudio").html('<input type="file" accept="*.mp3" name="filename">');
+            $("#recordedAudio").html('');
         })
     });
 </script>
