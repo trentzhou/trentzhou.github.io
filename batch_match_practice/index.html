@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <style>
+        html,
+        body {
+            margin: auto;
+            width: 95%;
+            font-size: 20px;
+            text-align: center;
+        }
+        .controller {
+            margin-top: 1em;
+        }
+
+        .quiz-item {
+            width:25%; /* or whatever width you want. */
+            max-width:25%; /* or whatever width you want. */
+            display: inline-block;
+            text-align: left;
+            margin-top: 0.5em;
+        }
+
+    </style>
+    <title>口算生成器</title>
+</head>
+
+<body>
+    <h2>二年级口算练习</h2>
+
+    <div id="result" class="result">
+    </div>
+
+    <script>
+        
+        // 12+34
+        function genAdd100() {
+            while (1) {
+                var a = parseInt(Math.random() * 99) + 1;
+                var b = parseInt(Math.random() * 99) + 1;
+                if (a + b < 100) {
+                    return `${a}+${b}`
+                }
+            }
+        }
+
+        // 34-12
+        function genSubtract100() {
+            while (1) {
+                var a = parseInt(Math.random() * 99) + 1;
+                var b = parseInt(Math.random() * 99) + 1;
+                if (a + b < 100) {
+                    return `${a + b}-${a}`
+                }
+            }
+        }
+
+        // 1200+3400
+        function genAddBig() {
+            while (1) {
+                var a = parseInt(Math.random() * 99) + 1;
+                var b = parseInt(Math.random() * 99) + 1;
+                if (a + b < 100) {
+                    return `${a}00+${b}00`
+                }
+            }
+        }
+
+        // 3400-1200
+        function genSubtractBig() {
+            while (1) {
+                var a = parseInt(Math.random() * 99) + 1;
+                var b = parseInt(Math.random() * 99) + 1;
+                if (a + b < 100) {
+                    return `${a + b}00-${a}00`
+                }
+            }
+        }
+
+        // 7x8
+        function genMultiplySingle() {
+            var a = parseInt(Math.random() * 9) + 1;
+            var b = parseInt(Math.random() * 9) + 1;
+            return `${a}×${b}`
+        }
+
+        // 56/7
+        function genDivideSingle() {
+            var a = parseInt(Math.random() * 9) + 1;
+            var b = parseInt(Math.random() * 9) + 1;
+            return `${a*b}\u00f7${a}`
+        }
+
+        // 1+2+3
+        function genAddSubMixed() {
+            function calc(a, b, op) {
+                if (op == '+')
+                    return a+b
+                else
+                    return a-b
+            }
+
+            while (1) {
+                var a = parseInt(Math.random() * 100);
+                var b = parseInt(Math.random() * 100);
+                var c = parseInt(Math.random() * 100);
+                var op1 = ['+', '-'][parseInt(Math.random() * 2)]
+                var op2 = ['+', '-'][parseInt(Math.random() * 2)]
+
+                var temp1 = calc(a, b, op1)
+                var temp2 = calc(temp1, c, op2)
+                if (temp1 > 0 && temp2 > 0) {
+                    return `${a}${op1}${b}${op2}${c}`
+                }
+            }
+        }
+
+        function generateBatchQuiz() {
+            data = new Set()
+
+            tests = [
+                {
+                    "count": 25,
+                    "generator": genAdd100
+                },
+                {
+                    "count": 25,
+                    "generator": genSubtract100
+                },
+                {
+                    "count": 5,
+                    "generator": genAddBig
+                },
+                {
+                    "count": 5,
+                    "generator": genSubtractBig
+                },
+                {
+                    "count": 16,
+                    "generator": genAddSubMixed
+                },
+                {
+                    "count": 6,
+                    "generator": genMultiplySingle
+                },
+                {
+                    "count": 6,
+                    "generator": genDivideSingle
+                }
+            ]
+
+            tests.forEach(element => {
+                for (var i = 0; i < element.count; i++) {
+                    let ok = false;
+                    while (!ok) {
+                        let quiz = element.generator()
+                        if (!data.has(quiz)) {
+                            data.add(quiz)
+                            ok = true
+                        }
+                    }
+                }
+            });
+            return data
+        }
+
+        function renderQuiz() {
+            var data = generateBatchQuiz()
+            var resultDiv = document.getElementById("result")
+            resultDiv.innerHTML = ""
+            data.forEach(item => {
+                var d = document.createElement("span")
+                d.innerHTML = item + "="
+                d.setAttribute("class", "quiz-item")
+                resultDiv.appendChild(d)
+            })
+        }
+        renderQuiz();
+    </script>
+</body>
