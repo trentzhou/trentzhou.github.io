@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <style>
+        html,
+        body {
+            margin: auto;
+            width: 95%;
+            font-size: 20px;
+            text-align: center;
+        }
+
+        input {
+            width: 3em;
+        }
+
+        button {
+            width: 16em;
+            height: 4em;
+        }
+
+        .controller {
+            margin-top: 1em;
+        }
+
+        .quiz-item {
+            width:25%; /* or whatever width you want. */
+            max-width:25%; /* or whatever width you want. */
+            display: inline-block;
+            text-align: left;
+            margin-top: 0.5em;
+        }
+
+    </style>
+    <title>口算生成器</title>
+</head>
+
+<body>
+    <h2 id="title">口算练习</h2>
+
+    <div id="config" class="config">
+        <table align="center">
+            <thead>
+                <tr>
+                <th>题型</th> <th>数目</th>
+                </tr>
+            </thead>
+
+            <tbody id="countmap">
+            </tbody>
+        </table>
+
+        <button id="buttonGenerate">OK</button>
+    </div>
+
+    <div id="result" class="result">
+    </div>
+
+    <script>
+        Array.prototype.shuffle = function() {
+            var input = this;
+            for (var i = input.length-1; i >=0; i--) {
+                var randomIndex = Math.floor(Math.random()*(i+1));
+                var itemAtIndex = input[randomIndex];
+                input[randomIndex] = input[i];
+                input[i] = itemAtIndex;
+            }
+            return input;
+        }
+
+        // 12+34
+        function genAdd100() {
+            while (1) {
+                var a = parseInt(Math.random() * 99) + 1;
+                var b = parseInt(Math.random() * 99) + 1;
+                if (a + b < 100) {
+                    return `${a}+${b}`
+                }
+            }
+        }
+
+        // 34-12
+        function genSubtract100() {
+            while (1) {
+                var a = parseInt(Math.random() * 99) + 1;
+                var b = parseInt(Math.random() * 99) + 1;
+                if (a + b < 100) {
+                    return `${a + b}-${a}`
+                }
+            }
+        }
+
+        // 1200+3400
+        function genAddBig() {
+            while (1) {
+                var a = parseInt(Math.random() * 99) + 1;
+                var b = parseInt(Math.random() * 99) + 1;
+                if (a + b < 100) {
+                    return `${a}00+${b}00`
+                }
+            }
+        }
+
+        // 3400-1200
+        function genSubtractBig() {
+            while (1) {
+                var a = parseInt(Math.random() * 99) + 1;
+                var b = parseInt(Math.random() * 99) + 1;
+                if (a + b < 100) {
+                    return `${a + b}00-${a}00`
+                }
+            }
+        }
+
+        // 7x8
+        function genMultiplySingle() {
+            var a = parseInt(Math.random() * 9) + 1;
+            var b = parseInt(Math.random() * 9) + 1;
+            return `${a}×${b}`
+        }
+
+        // 56/7
+        function genDivideSingle() {
+            var a = parseInt(Math.random() * 9) + 1;
+            var b = parseInt(Math.random() * 9) + 1;
+            return `${a*b}\u00f7${a}`
+        }
+
+        // 1+2+3
+        function genAddSubMixed() {
+            function calc(a, b, op) {
+                if (op == '+')
+                    return a+b
+                else
+                    return a-b
+            }
+
+            while (1) {
+                var a = parseInt(Math.random() * 100);
+                var b = parseInt(Math.random() * 100);
+                var c = parseInt(Math.random() * 100);
+                var op1 = ['+', '-'][parseInt(Math.random() * 2)]
+                var op2 = ['+', '-'][parseInt(Math.random() * 2)]
+
+                var temp1 = calc(a, b, op1)
+                var temp2 = calc(temp1, c, op2)
+                if (temp1 > 0 && temp2 > 0) {
+                    return `${a}${op1}${b}${op2}${c}`
+                }
+            }
+        }
+
+        function genMultiply2x1() {
+            var a = parseInt(Math.random() * 99) + 1;
+            var b = parseInt(Math.random() * 8) + 2;
+            return `${a}×${b}`
+        }
+
+        function genDivide2x1() {
+            var a = parseInt(Math.random() * 99) + 1;
+            var b = parseInt(Math.random() * 8) + 2;
+            return `${a*b}\u00f7${b}`
+        }
+
+        function genDivide2x2() {
+            var a = parseInt(Math.random() * 99) + 1;
+            var b = parseInt(Math.random() * 8) + 2;
+            return `${a*b}\u00f7${a}`
+        }
+
+        function genDivideWith0() {
+            var a = parseInt(Math.random() * 99) + 1;
+            var b = parseInt(Math.random() * 8) + 2;
+            return `${a*b*100}\u00f7${b*10}`
+        }
+
+        var tests = [
+            {
+                "text": "DD + DD",
+                "generator": genAdd100,
+                "count": 5
+            },
+            {
+                "text": "DD - DD",
+                "generator": genSubtract100,
+                "count": 5
+            },
+            {
+                "text": "DD00 + DD00",
+                "generator": genAddBig,
+                "count": 0
+            },
+            {
+                "text": "DD00 - DD00",
+                "generator": genSubtractBig,
+                "count": 0
+            },
+            {
+                "text": "DD + DD - DD",
+                "generator": genAddSubMixed,
+                "count": 0
+            },
+            {
+                "text": "DD x D",
+                "generator": genMultiply2x1,
+                "count": 5
+            },
+            {
+                "text": "DD \u00f7 D",
+                "generator": genDivide2x1,
+                "count": 6
+            },
+            {
+                "text": "DD \u00f7 DD",
+                "generator": genDivide2x2,
+                "count": 6
+            },
+            {
+                "text": "DD00 \u00f7 D0",
+                "generator": genDivideWith0,
+                "count": 5
+            }
+        ];
+
+        function generateBatchQuiz() {
+            data = new Set()
+
+            tests.forEach(element => {
+                for (var i = 0; i < element.count; i++) {
+                    let ok = false;
+                    while (!ok) {
+                        let quiz = element.generator()
+                        if (!data.has(quiz)) {
+                            data.add(quiz)
+                            ok = true
+                        }
+                    }
+                }
+            });
+            return Array.from(data).shuffle()
+        }
+
+        function renderQuiz() {
+            var data = generateBatchQuiz()
+            var resultDiv = document.getElementById("result")
+            resultDiv.innerHTML = ""
+            data.forEach(item => {
+                var d = document.createElement("span")
+                d.innerHTML = item + "="
+                d.setAttribute("class", "quiz-item")
+                resultDiv.appendChild(d)
+            })
+        }
+
+        function showConfig() {
+            document.getElementById("config").style.display = "";
+            document.getElementById("result").style.display = "none";
+
+            // add text to the config table
+            var countmap = document.getElementById("countmap")
+            countmap.innerHTML = ""
+            tests.forEach((item, index) => {
+                var tr = document.createElement("tr")
+                tr.innerHTML = `<td align="left">${item.text}</td><td><input type="number" id="cfg-${index}" label="cfg-${index}" value="${item.count}" min="0" max="20"/></td>`
+                countmap.appendChild(tr)
+            })
+        }
+
+        function refreshConfig() {
+            tests.forEach((item, index) => {
+                var td = document.getElementById(`cfg-${index}`)
+                item.count = parseInt(td.value)
+            })
+        }
+
+        showConfig()
+        buttonGenerate.onclick = function() {
+            document.getElementById("config").style.display = "none";
+            document.getElementById("result").style.display = "";
+
+            refreshConfig()
+            renderQuiz()
+        }
+        document.getElementById("title").onclick = showConfig
+        document.getElementById("result").onclick = renderQuiz
+    </script>
+</body>
