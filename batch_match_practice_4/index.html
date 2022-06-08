@@ -132,12 +132,11 @@
         // 整十数、整百数除以整十数
         function gen_category_05() {
             while (true) {
-                var a = rand_int(2, 10);
-                var b = rand_int(2, 10);
-                var c = 10 ** rand_int(1, 3);
+                var a = rand_int(2, 10)* (10 ** rand_int(1, 3));
+                var b = rand_int(2, 10) * 10;
 
                 if (a % b == 0) {
-                    return `${a * c}\u00f7${b * 10}`;
+                    return `${a}\u00f7${b}`;
                 }
             }
         }
