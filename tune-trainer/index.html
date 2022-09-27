@@ -10,7 +10,7 @@
     <script type="text/javascript" src="js/main.js"></script>
 </head>
 <style>
-    #control {
+    .control {
         margin: auto;
         width: 90%;
         padding: 10px;
@@ -24,8 +24,13 @@
         font-size: 25px;
     }
 
-    #btn_play {
-        width: 10pc;
+    select {
+        font-size: 25px;
+        margin: 1em;
+    }
+
+    .button {
+        width: 40pc;
         font-size: 25px;
     }
 
@@ -37,10 +42,36 @@
 
 <body>
     <div id="gameDiv"> </div>
-    <div id="control">
-        半音间隔 <input type="number" value="1" min="1" max="12" id="input_step" onchange="show_step_name()" />
+    <div class="control">
+        半音间隔 <input type="number" value="1" min="1" max="12" id="input_step" onchange="show_interval_name()" />
         <div id="div_step_name"></div>
-        <button id="btn_play" onclick="play_tune()">播放</button>
+        <button id="btn_play" class="button" onclick="play_interval()">循环播放音程</button>
+    </div>
+
+    <div id="chord" class="control">
+
+        <select id="note-range">
+            <option value="1">音区1</option>
+            <option value="2">音区2</option>
+            <option value="3">音区3</option>
+            <option value="4">音区4</option>
+            <option value="5">音区5</option>
+            <option value="6">音区6</option>
+        </select>
+
+        <select id="root-note">
+        </select>
+
+        <select id="chord-select">
+            <option value="maj3">大三和弦</option>
+            <option value="min3">小三和弦</option>
+            <option value="maj7">大七和弦</option>
+            <option value="min7">小七和弦</option>
+            <option value="dom7">属七和弦</option>
+        </select>
+
+        <br/>
+        <button id="btn_play_chord" class="button" onclick="play_chord()">播放和弦</button> <br/>
     </div>
 
     <script lang="javascript">
@@ -48,6 +79,7 @@
         const btnPlay = document.getElementById("btn_play");
         const divStepName = document.getElementById("div_step_name");
         var playing = false;
+        var all_note_names = null;
 
         var stepNameMap = {
             "1": "小二度",
@@ -69,22 +101,28 @@
          * tunes: [{"note": 32, "length": 1000}, {"note": 33, "length": 500}]
          * onfinish: the callback when all notes are finished
          */
-        function play_tune_sequence(tunes, onfinish) {
-            function play_tune_internal(tunes, index) {
+        function play_interval_sequence(tunes, onfinish) {
+            function play_interval_internal(tunes, index) {
                 var item = tunes[index];
-                play_note(item.note);
+                if (Array.isArray(item.note)) {
+                    item.note.forEach((n) => {
+                        play_note(n);
+                    })
+                } else {
+                    play_note(item.note);
+                }
                 if (index < tunes.length - 1) {
                     setTimeout(function () {
-                        play_tune_internal(tunes, index + 1);
+                        play_interval_internal(tunes, index + 1);
                     }, item.length);
                 } else {
                     setTimeout(onfinish, item.length);
                 }
             }
-            play_tune_internal(tunes, 0);
+            play_interval_internal(tunes, 0);
         }
 
-        function play_tune() {
+        function play_interval() {
             playing = !playing;
 
             function play_random_sequence() {
@@ -105,10 +143,10 @@
                     { note: start, length: 500 },
                     { note: end, length: 500 },
                     { note: start, length: 1000 },
-                    { note: end, length: 2000 }
+                    { note: [start, end], length: 2000 }
                 ];
 
-                play_tune_sequence(notes, play_random_sequence);
+                play_interval_sequence(notes, play_random_sequence);
             }
 
             if (playing) {
@@ -119,13 +157,150 @@
             }
         }
 
-        function show_step_name() {
+        function show_interval_name() {
             var step = inputStep.value;
             var text = stepNameMap[step];
             divStepName.innerText = text;
         }
 
-        show_step_name();
+        // 产生大三和弦
+        function gen_chord_maj3(start_note) {
+            let end_note = start_note + 7;  // 纯五度
+            if (end_note >= 88) {
+                end_note = 88;
+                start_note = end_note - 7;
+            }
+            let middle_note = start_note + 4;   // 大三度
+            return [start_note, middle_note, end_note];
+        }
+        
+        // 产生小三和弦
+        function gen_chord_min3(start_note) {
+            let end_note = start_note + 7;  // 纯五度
+            if (end_note >= 88) {
+                end_note = 88;
+                start_note = end_note - 7;
+            }
+            let middle_note = start_note + 3;   // 小三度
+            return [start_note, middle_note, end_note];
+        }
+
+        // 产生大七和弦
+        function gen_chord_maj7(start_note) {
+            let end_note = start_note + 11;  // 大七度
+            if (end_note >= 88) {
+                end_note = 88;
+                start_note = end_note - 11;
+            }
+            let middle_note1 = start_note + 4;   // 大三度
+            let middle_note2 = start_note + 7;   // 纯五度
+            return [start_note, middle_note1, middle_note2, end_note];
+        }
+        
+        // 产生小七和弦
+        function gen_chord_min7(start_note) {
+            let end_note = start_note + 10;  // 小七度
+            if (end_note >= 88) {
+                end_note = 88;
+                start_note = end_note - 10;
+            }
+            let middle_note1 = start_note + 3;   // 小三度
+            let middle_note2 = start_note + 7;   // 纯五度
+            return [start_note, middle_note1, middle_note2, end_note];
+        }
+
+        // 产生属七和弦
+        function gen_chord_dom7(start_note) {
+            let end_note = start_note + 10;  // 小七度
+            if (end_note >= 88) {
+                end_note = 88;
+                start_note = end_note - 10;
+            }
+            let middle_note1 = start_note + 4;   // 大三度
+            let middle_note2 = start_note + 7;   // 纯五度
+            return [start_note, middle_note1, middle_note2, end_note];
+        }
+
+        let btn_play_chord = document.getElementById("btn_play_chord");
+        
+        function disable_chord_buttons() {
+            btn_play_chord.disabled = true;
+        }
+
+        function enable_chord_buttons() {
+            btn_play_chord.disabled = false;
+        }
+
+        function play_chord() {
+            play_chord_again()
+        }
+
+        function play_chord() {
+            let chord_function_map = {
+                "maj3": gen_chord_maj3,
+                "min3": gen_chord_min3,
+                "maj7": gen_chord_maj7,
+                "min7": gen_chord_min7,
+                "dom7": gen_chord_dom7
+            };
+            
+            // 找到根音
+            let s = document.getElementById("root-note");
+            let note_name = s.options[s.selectedIndex].innerHTML;
+
+            s = document.getElementById("note-range");
+            let range = s.options[s.selectedIndex].value;
+
+            let chord_start = get_root_note(note_name, range);
+
+            // 判断和弦类型
+            s = document.getElementById("chord-select");
+            let key = s.options[s.selectedIndex].value;
+            let f = chord_function_map[key];
+            let notes = f(chord_start);
+            let sequence = [
+                {
+                    note: notes, 
+                    length: 2000
+                }
+            ]
+            disable_chord_buttons();
+            play_interval_sequence(sequence, enable_chord_buttons);
+        }
+
+        function gen_note_name_map() {
+            let names = [""];
+            ["A", "A#/Bb", "B"].forEach((x) => {names.push(x)})
+            let note_names = ["C", "C#/Db", "D", "D#/Eb", "E", "F", "F#/Gb", "G", "G#/Ab", "A", "A#/Bb", "B"];
+            let select_root_note = document.getElementById("root-note");
+            select_root_note.innerHTML = "";
+            note_names.forEach((x) => {
+                let s = document.createElement("option");
+                s.innerHTML = x;
+                select_root_note.appendChild(s);
+            })
+            for (let i = 0; i < 7; i++) {
+                note_names.forEach((x) => {
+                    names.push(x);
+                })
+            }
+            names.push("C");
+            all_note_names = names;
+        }
+
+        function get_root_note(name, range) {
+            let start = 15 + 12 * (parseInt(range)-1);
+            for (let i = start; i <= 88; i++) {
+                let note_name = all_note_names[i];
+                if (note_name == name) {
+                    return i;
+                }
+            }
+            return 0;
+        }
+
+        gen_note_name_map();
+        show_interval_name();
     </script>
 </body>
 
