@@ -258,12 +258,14 @@
             let key = s.options[s.selectedIndex].value;
             let f = chord_function_map[key];
             let notes = f(chord_start);
-            let sequence = [
-                {
-                    note: notes, 
-                    length: 2000
-                }
-            ]
+            let sequence = []
+            // 播放琶音
+            notes.forEach((x) => {
+                sequence.push({note: x, length: 500})
+            })
+            // 停顿一秒，然后播放和弦
+            sequence.push({note:0, length: 1000});
+            sequence.push({note: notes, length: 2000})
             disable_chord_buttons();
             play_interval_sequence(sequence, enable_chord_buttons);
         }
