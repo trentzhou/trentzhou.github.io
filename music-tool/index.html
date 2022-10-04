@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 
 <head>
@@ -8,6 +9,7 @@
     <meta charset="UTF-8" />
     <script type="text/javascript" src="js/phaser.js"></script>
     <script type="text/javascript" src="js/main.js"></script>
+    <script type="text/javascript" src="js/chord_parser.js"></script>
 </head>
 <style>
     .control {
@@ -18,8 +20,7 @@
         text-align: center;
     }
 
-    #input_step {
-        width: 5pc;
+    input {
         height: 25px;
         font-size: 25px;
     }
@@ -34,7 +35,7 @@
         font-size: 25px;
     }
 
-    #div_step_name {
+    .big {
         font-size: 40px;
         color: lightskyblue;
     }
@@ -44,7 +45,7 @@
     <div id="gameDiv"> </div>
     <div class="control">
         半音间隔 <input type="number" value="1" min="1" max="12" id="input_step" onchange="show_interval_name()" />
-        <div id="div_step_name"></div>
+        <div id="div_step_name" class="big"></div>
         <button id="btn_play" class="button" onclick="play_interval()">循环播放音程</button>
     </div>
 
@@ -70,10 +71,17 @@
             <option value="dom7">属七和弦</option>
         </select>
 
+        <input type="checkbox" id="arpeggio"/> <label for="arpeggio">播放琶音</label>
+
         <br/>
         <button id="btn_play_chord" class="button" onclick="play_chord()">播放和弦</button> <br/>
     </div>
 
+    <div class="control">
+        输入和弦： <input id="input_chord" onkeydown="on_input_chord_keydown(event)" /> <br/>
+        <button class="button" onclick="on_change_input_chord()">播放输入的和弦</button>
+        <div id="chord-detail" class="big"></div>
+    </div>
     <script lang="javascript">
         const inputStep = document.getElementById("input_step");
         const btnPlay = document.getElementById("btn_play");
@@ -96,10 +104,11 @@
             "12": "纯八度"
         };
 
-        /*
+        /**
          * Play a tune sequence.
-         * tunes: [{"note": 32, "length": 1000}, {"note": 33, "length": 500}]
-         * onfinish: the callback when all notes are finished
+         *
+         * @param {Array} tunes - [{"note": 32, "length": 1000}, {"note": 33, "length": 500}]
+         * @param {function} onfinish - the callback when all notes are finished
          */
         function play_interval_sequence(tunes, onfinish) {
             function play_interval_internal(tunes, index) {
@@ -166,10 +175,6 @@
         // 产生大三和弦
         function gen_chord_maj3(start_note) {
             let end_note = start_note + 7;  // 纯五度
-            if (end_note >= 88) {
-                end_note = 88;
-                start_note = end_note - 7;
-            }
             let middle_note = start_note + 4;   // 大三度
             return [start_note, middle_note, end_note];
         }
@@ -177,10 +182,6 @@
         // 产生小三和弦
         function gen_chord_min3(start_note) {
             let end_note = start_note + 7;  // 纯五度
-            if (end_note >= 88) {
-                end_note = 88;
-                start_note = end_note - 7;
-            }
             let middle_note = start_note + 3;   // 小三度
             return [start_note, middle_note, end_note];
         }
@@ -188,10 +189,6 @@
         // 产生大七和弦
         function gen_chord_maj7(start_note) {
             let end_note = start_note + 11;  // 大七度
-            if (end_note >= 88) {
-                end_note = 88;
-                start_note = end_note - 11;
-            }
             let middle_note1 = start_note + 4;   // 大三度
             let middle_note2 = start_note + 7;   // 纯五度
             return [start_note, middle_note1, middle_note2, end_note];
@@ -200,10 +197,6 @@
         // 产生小七和弦
         function gen_chord_min7(start_note) {
             let end_note = start_note + 10;  // 小七度
-            if (end_note >= 88) {
-                end_note = 88;
-                start_note = end_note - 10;
-            }
             let middle_note1 = start_note + 3;   // 小三度
             let middle_note2 = start_note + 7;   // 纯五度
             return [start_note, middle_note1, middle_note2, end_note];
@@ -212,13 +205,43 @@
         // 产生属七和弦
         function gen_chord_dom7(start_note) {
             let end_note = start_note + 10;  // 小七度
-            if (end_note >= 88) {
-                end_note = 88;
-                start_note = end_note - 10;
-            }
             let middle_note1 = start_note + 4;   // 大三度
             let middle_note2 = start_note + 7;   // 纯五度
             return [start_note, middle_note1, middle_note2, end_note];
+        }
+
+        // 产生6和弦
+        function gen_chord_add6(start_note) {
+            let third_note = start_note + 7;  // 纯五度
+            let second_note = start_note + 4;   // 大三度
+            let fourth_note = start_note + 9;   // 大六度
+            return [start_note, second_note, third_note, fourth_note];
+        }
+
+        // 产生九和弦
+        function gen_chord_9(start_note) {
+            let second_note = start_note + 4;   // 大三度
+            let third_note = start_note + 7;    // 纯五度
+            let fourth_note = start_note + 10;  // 小七度
+            let fifth_note = start_note + 14;   // 大九度
+            return [start_note, second_note, third_note, fourth_note, fifth_note];
+        }
+
+        // 产生加九音和弦
+        function gen_chord_add9(start_note) {
+            let second_note = start_note + 4;   // 大三度
+            let third_note = start_note + 7;    // 纯五度
+            let fourth_note = start_note + 2;   // 大二度，也就是大九度
+            return [start_note, second_note, third_note, fourth_note];
+        }
+
+        // 产生大七升五和弦
+        function gen_chord_maj7_aug5(start_note) {
+            let second_note = start_note + 4;   // 大三度
+            let third_note = start_note + 7;    // 纯五度
+            let fourth_note = start_note + 11;  // 大七度
+            let fifth_note = start_note + 8;    // 增五度
+            return [start_note, second_note, third_note, fourth_note, fifth_note];
         }
 
         let btn_play_chord = document.getElementById("btn_play_chord");
@@ -236,6 +259,29 @@
         }
 
         function play_chord() {
+            // 找到根音
+            let s = document.getElementById("root-note");
+            let root_note = s.options[s.selectedIndex].innerHTML;
+
+            s = document.getElementById("note-range");
+            let range = s.options[s.selectedIndex].value;
+            let chord_start = get_root_note(root_note, range);
+            // 判断和弦类型
+            s = document.getElementById("chord-select");
+            let chord_type = s.options[s.selectedIndex].value;
+           
+            // 播放琶音
+            let arpeggio = document.getElementById("arpeggio").checked;
+            play_chord_internal(chord_start, chord_type, arpeggio);
+        }
+
+        /**
+         * @param {int} chord_start: value between 1 and 88
+         * @param {string} chord_type: chord type "maj3", "min3"...
+         * @param {boolean} arpeggio: play arpeggio before chord.
+         */
+        function play_chord_internal(chord_start, chord_type, arpeggio) {
+            
             let chord_function_map = {
                 "maj3": gen_chord_maj3,
                 "min3": gen_chord_min3,
@@ -243,31 +289,19 @@
                 "min7": gen_chord_min7,
                 "dom7": gen_chord_dom7
             };
-            
-            // 找到根音
-            let s = document.getElementById("root-note");
-            let note_name = s.options[s.selectedIndex].innerHTML;
-
-            s = document.getElementById("note-range");
-            let range = s.options[s.selectedIndex].value;
-
-            let chord_start = get_root_note(note_name, range);
-
-            // 判断和弦类型
-            s = document.getElementById("chord-select");
-            let key = s.options[s.selectedIndex].value;
-            let f = chord_function_map[key];
+            let f = chord_function_map[chord_type];
             let notes = f(chord_start);
-            let sequence = []
-            // 播放琶音
-            notes.forEach((x) => {
-                sequence.push({note: x, length: 500})
-            })
-            // 停顿一秒，然后播放和弦
-            sequence.push({note:0, length: 1000});
+            let sequence = [];
+
+            if (arpeggio) {
+                notes.forEach((x) => {
+                    sequence.push({note: x, length: 500})
+                })
+                // 停顿一秒，然后播放和弦
+                sequence.push({note:0, length: 1000});
+            }
             sequence.push({note: notes, length: 2000})
-            disable_chord_buttons();
-            play_interval_sequence(sequence, enable_chord_buttons);
+            play_interval_sequence(sequence, function(){});
         }
 
         function gen_note_name_map() {
@@ -290,6 +324,14 @@
             all_note_names = names;
         }
 
+        /**
+         * Get root note of a chord.
+         * 
+         * @param {string} name - the name of the note, like "C" or "C#"
+         * @param {int} range - the range of the note, number 1 to 6
+         * 
+         * @return {int} the index of note, a number between 1 and 88
+         */
         function get_root_note(name, range) {
             let start = 15 + 12 * (parseInt(range)-1);
             for (let i = start; i <= 88; i++) {
@@ -301,8 +343,92 @@
             return 0;
         }
 
+        function handle_key_down(event) {
+            let keycode = event.keyCode;
+            // 找到根音
+            let s = document.getElementById("root-note");
+            let root_note = s.options[s.selectedIndex].innerHTML;
+
+            s = document.getElementById("note-range");
+            let range = s.options[s.selectedIndex].value;
+            let tone_start = get_root_note(root_note, range);
+
+            switch (keycode) {
+                case 49:
+                    // '1'
+                    play_chord_internal(tone_start, 'maj3', false);
+                    break;
+                case 50:
+                    // '2'
+                    play_chord_internal(tone_start + 2, 'min3', false);
+                    break;
+                case 51:
+                    // '3'
+                    play_chord_internal(tone_start + 4, 'min3', false);
+                    break;
+                case 52:
+                    // '4'
+                    play_chord_internal(tone_start + 5, 'maj3', false);
+                    break;
+                case 53:
+                    // '5'
+                    play_chord_internal(tone_start + 7, 'maj3', false);
+                    break;
+                case 54:
+                    // '6'
+                    play_chord_internal(tone_start + 9, 'min3', false);
+                    break;
+                case 55:
+                    // '7'
+                    play_chord_internal(tone_start + 7, 'dom7', false);
+                    break;
+            }
+        }
+
+        function on_change_input_chord() {
+            let input_chord = document.getElementById("input_chord");
+            let chord_name = input_chord.value;
+            let s = document.getElementById("note-range");
+            let range = s.options[s.selectedIndex].value;
+
+            try {
+                let c = build_chord(chord_name, range);
+                if (c != null) {
+                    console.log(c.toString());
+                    let notes = c.get_notes();
+                    let notes_str = notes.map(x => NoteResolver.get_note_name(x)).join(" ");
+                    let chord_detail = document.getElementById("chord-detail");
+                    console.log(notes_str);
+
+                    chord_detail.innerText = notes_str;
+                    let sequence = [];
+
+                    let arpeggio = document.getElementById("arpeggio").checked;
+                    if (arpeggio) {
+                        notes.forEach((x) => {
+                            sequence.push({note: x, length: 500})
+                        })
+                        // 停顿一秒，然后播放和弦
+                        sequence.push({note:0, length: 1000});
+                    }
+                    sequence.push({note: notes, length: 2000})
+                    play_interval_sequence(sequence, function(){});
+                }
+            } catch (e) {
+                console.log(e);
+            }
+        }
+
+        function on_input_chord_keydown(e) {
+            let key = e.keyCode;
+            if (key == 13 || key == 32) {
+                on_change_input_chord();
+            }
+        }
+
         gen_note_name_map();
         show_interval_name();
+        //document.onkeydown = handle_key_down;
     </script>
 </body>
 
